@@ -32,7 +32,7 @@ class DisplayManager:
             device_config (object): Configuration object containing display settings.
 
         Raises:
-            ValueError: If an unsupported display type is specified.
+            ValueError: If an unsupported display type is specified
         """
 
         self.device_config = device_config
