@@ -42,7 +42,7 @@ class DisplayManager:
         if display_type == "mock":
             self.display = MockDisplay(device_config)
         elif display_type == "inky":
-            self.display = InkyImpression()
+            self.display = InkyDisplay(device_config)
         elif fnmatch.fnmatch(display_type, "epd*in*"):
             # derived from waveshare epd - we assume here that will be consistent
             # otherwise we will have to enshring the manufacturer in the
