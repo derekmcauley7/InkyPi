@@ -17,21 +17,39 @@
   document.addEventListener('DOMContentLoaded', function () {
     const rawEvents = {{ events | tojson }};
 
-    // Pastel Google Calendar-style colors
-    const pastelColors = [
-      '#a6cee3', '#1f78b4', '#b2df8a', '#33a02c',
-      '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00',
-      '#cab2d6', '#6a3d9a', '#ffff99', '#b15928'
+    const evenColours = [
+      '#f0e050', '#5080b8', '#80FF00', '#FF8000', '#0080FF',
     ];
 
-    // Assign a random color to each event
+    // Function to calculate relative luminance
+    function getLuminance(hexColor) {
+      const c = hexColor.substring(1); // remove #
+      const rgb = parseInt(c, 16);
+      const r = (rgb >> 16) & 0xff;
+      const g = (rgb >> 8) & 0xff;
+      const b = rgb & 0xff;
+
+      const [R, G, B] = [r, g, b].map(v => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+
+      return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+    }
+
+    // Function to choose black or white text based on background
+    function getContrastTextColor(bgColor) {
+      return getLuminance(bgColor) > 0.179 ? '#000000' : '#ffffff';
+    }
+
+    // Assign a random color to each event with optimal text color
     const events = rawEvents.map(event => {
-      const color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+      const color = evenColours[Math.floor(Math.random() * evenColours.length)];
       return {
         ...event,
         backgroundColor: color,
         borderColor: color,
-        textColor: '#000'  // ensures text is readable
+        textColor: getContrastTextColor(color)
       };
     });
 
@@ -59,7 +77,7 @@
       info.el.style.backgroundColor = info.event.backgroundColor;
       info.el.style.borderColor = info.event.borderColor;
       info.el.style.color = info.event.textColor;
-      info.el.style.display = 'block'; // key: make it a block so the whole event is colored
+      info.el.style.display = 'block'; // make the whole event colored
     }
   });
 
