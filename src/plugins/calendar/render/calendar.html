@@ -1,87 +1,63 @@
 {% extends "plugin.html" %}
 
 {% block content %}
-<!-- Calendar Container -->
-<div id="calendar" class="calendar" style="
-  --fc-page-bg-color: #fff;
-  --fc-border-color: #000;
-  --fc-today-bg-color: #fff;
-  --fc-small-font-size: {{ 0.9 * font_scale }}em;
-  --fc-title-font-size: {{ 2 * font_scale }}em;
-  --fc-table-font-size: {{ 1.1 * font_scale }}em;
-"></div>
 
-<!-- Calendar Script -->
 <script src="{{static_dir}}/scripts/calendar.min.js" charset="UTF-8"></script>
+
+<div id="calendar" class="calendar" style="
+--fc-page-bg-color: {{ plugin_settings.backgroundColor or white }};
+--fc-border-color: {{ plugin_settings.textColor }};
+--fc-today-bg-color: '';
+--fc-now-indicator-color: {{ plugin_settings.nowIndicatorColor or red }};
+--fc-event-border-color: {{ plugin_settings.textColor or white }};
+
+--fc-small-font-size: {{ 0.85 * font_scale }}em;
+--fc-title-font-size: {{ 1.75 * font_scale }}em;
+--fc-table-font-size: {{ 1 * font_scale }}em;
+">
+
+</div>
+
 <script>
+  const events = {{ events | tojson }};
+
   document.addEventListener('DOMContentLoaded', function () {
-    const rawEvents = {{ events | tojson }};
-
-    const evenColours = [
-      '#a02020', '#f0e050', '#608050', '#5080b8'
-    ];
-
-    // Function to calculate relative luminance
-    function getLuminance(hexColor) {
-      const c = hexColor.substring(1); // remove #
-      const rgb = parseInt(c, 16);
-      const r = (rgb >> 16) & 0xff;
-      const g = (rgb >> 8) & 0xff;
-      const b = rgb & 0xff;
-
-      const [R, G, B] = [r, g, b].map(v => {
-        const s = v / 255;
-        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-      });
-
-      return 0.2126 * R + 0.7152 * G + 0.0722 * B;
-    }
-
-    // Function to choose black or white text based on background
-    function getContrastTextColor(bgColor) {
-      return getLuminance(bgColor) > 0.179 ? '#000000' : '#ffffff';
-    }
-
-    // Assign a random color to each event with optimal text color
-    const events = rawEvents.map(event => {
-      const color = evenColours[Math.floor(Math.random() * evenColours.length)];
-      return {
-        ...event,
-        backgroundColor: color,
-        borderColor: color,
-        textColor: getContrastTextColor(color)
-      };
-    });
-
     const calendarEl = document.getElementById('calendar');
+    const timeFormat = {
+      hour: "numeric",
+      minute: "2-digit",
+      omitZeroMinute: {{ (time_format == "12h") | tojson }},
+    hour12: {{ (time_format == "12h") | tojson }},
+    meridiem: 'short'
+  };
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: '{{ view }}',
       events: events,
       now: '{{ current_dt }}',
       timeZone: '{{ timezone }}',
+      contentHeight: '100%',
+      slotDuration: '01:00:00',
       expandRows: true,
       locale: "{{ plugin_settings.language or 'en' }}",
-      firstDay: "{{ plugin_settings.weekStartDay or 0 }}",
-      headerToolbar: {
-        left: '',
+      firstDay: "{{ plugin_settings.weekStartDay or 0}}",
+      slotLabelFormat: timeFormat,
+      slotMinTime: "{{ plugin_settings.startTimeInterval or 00}}:00:00",
+      slotMaxTime: "{{ plugin_settings.endTimeInterval or 24}}:00:00",
+      eventTimeFormat: timeFormat,
+      displayEventTime: {{ (plugin_settings.displayEventTime == "true") | tojson}},
+    weekends:  {{ (plugin_settings.displayWeekends == "true") | tojson}},
+    nowIndicator: {{ (plugin_settings.displayNowIndicator == "true") | tojson}},
+    fixedWeekCount: false,
+    {% if view == 'timeGrid' %}duration: {days : 7 },{% endif %}
+    {% if view == 'dayGrid' %}duration: {weeks : "{{ plugin_settings.displayWeeks or 4}}" },{% endif %}
+    headerToolbar: {
+      left: '',
         center: "{{ 'title' if plugin_settings.displayTitle == 'true' else '' }}",
         right: ''
-      },
-      fixedWeekCount: false,
-      weekends: {{ (plugin_settings.displayWeekends == "true") | tojson }},
-    displayEventTime: false,
-      nowIndicator: false,
-      height: '100%',
-      dayMaxEvents: 3,
-      eventDidMount: function(info) {
-      info.el.style.backgroundColor = info.event.backgroundColor;
-      info.el.style.borderColor = info.event.borderColor;
-      info.el.style.color = info.event.textColor;
-      info.el.style.display = 'block'; // make the whole event colored
-    }
+    },
+    slotDuration: "01:00:00"
   });
-
     calendar.render();
   });
 </script>
