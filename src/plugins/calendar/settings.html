@@ -97,6 +97,67 @@
 </div>
 
 <script>
+    // Simple client-side persistence for calendar settings
+    // Stores and restores settings in localStorage so your selections survive page reloads
+    const STORAGE_KEY = (() => {
+        try {
+            // pluginInstanceName is defined globally in plugin.html
+            const inst = (typeof pluginInstanceName !== 'undefined' && pluginInstanceName) ? pluginInstanceName : 'default';
+            return `inkyPi.calendar.settings.${inst}`;
+        } catch (_) {
+            return 'inkyPi.calendar.settings.default';
+        }
+    })();
+
+    function loadLocalSettings() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            console.warn('Failed to read local calendar settings:', e);
+            return null;
+        }
+    }
+
+    function collectSettingsFromForm() {
+        const getBool = (id) => document.getElementById(id)?.checked ?? false;
+        const getVal = (id) => document.getElementById(id)?.value ?? '';
+
+        // Gather dynamic calendar entries
+        const urls = Array.from(document.querySelectorAll('input[name="calendarURLs[]"]')).map(i => i.value);
+        const colors = Array.from(document.querySelectorAll('input[name="calendarColors[]"]')).map(i => i.value || '#007BFF');
+
+        return {
+            viewMode: getVal('viewMode'),
+            language: getVal('language'),
+            fontSize: getVal('fontSize'),
+
+            displayTitle: getBool('displayTitle'),
+            displayWeekends: getBool('displayWeekends'),
+            displayEventTime: getBool('displayEventTime'),
+            displayNowIndicator: getBool('displayNowIndicator'),
+            nowIndicatorColor: getVal('nowIndicatorColor') || '#ff0000',
+            displayPreviousDays: getBool('displayPreviousDays'),
+
+            weekStartDay: getVal('weekStartDay'),
+            startTimeInterval: getVal('startTimeInterval'),
+            endTimeInterval: getVal('endTimeInterval'),
+            displayWeeks: getVal('displayWeeks'),
+
+            "calendarURLs[]": urls,
+            "calendarColors[]": colors,
+        };
+    }
+
+    function saveLocalSettings() {
+        try {
+            const data = collectSettingsFromForm();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn('Failed to save local calendar settings:', e);
+        }
+    }
+
     function selectView(button) {
       // Remove 'active' from all buttons
       const buttons = document.querySelectorAll('#viewSelector button');
@@ -163,55 +224,49 @@
         calendarList.appendChild(wrapper);
     }
 
-    // populate form values from plugin settings
-    document.addEventListener('DOMContentLoaded', () => {        
+    // populate form values from plugin settings and localStorage
+    document.addEventListener('DOMContentLoaded', () => {
         const viewModeInput = document.getElementById('viewMode');
         const viewButtons = document.querySelectorAll('#viewSelector button');
 
         // defaults
-        let viewMode = "dayGridMonth";
-        let language = "en";
-        let calendars = [{ url: '', color: '#007BFF' }];
-        let fontSize = "normal";
+        let settings = {
+            viewMode: 'dayGridMonth',
+            language: 'en',
+            fontSize: 'normal',
+            displayTitle: true,
+            displayWeekends: true,
+            displayEventTime: true,
+            displayNowIndicator: true,
+            nowIndicatorColor: '#ff0000',
+            displayPreviousDays: true,
+            weekStartDay: '0',
+            startTimeInterval: '',
+            endTimeInterval: '',
+            displayWeeks: '',
+            "calendarURLs[]": [''],
+            "calendarColors[]": ['#007BFF'],
+        };
 
-        if (loadPluginSettings) {
-            viewMode = pluginSettings.viewMode;
-            language = pluginSettings.language;
-            fontSize = pluginSettings.fontSize;
-
-            document.getElementById('displayTitle').checked = pluginSettings.displayTitle;
-            document.getElementById('displayTitle').value = pluginSettings.displayTitle;
-
-            document.getElementById('displayWeekends').checked = pluginSettings.displayWeekends;
-            document.getElementById('displayWeekends').value = pluginSettings.displayWeekends;
-
-            document.getElementById('displayEventTime').checked = pluginSettings.displayEventTime;
-            document.getElementById('displayEventTime').value = pluginSettings.displayEventTime;
-
-            document.getElementById('displayNowIndicator').checked = pluginSettings.displayNowIndicator;
-            document.getElementById('displayNowIndicator').value = pluginSettings.displayNowIndicator;
-            document.getElementById('nowIndicatorColor').value = pluginSettings.nowIndicatorColor;
-
-            document.getElementById('displayPreviousDays').checked = pluginSettings.displayPreviousDays;
-            document.getElementById('displayPreviousDays').value = pluginSettings.displayPreviousDays;
-
-            document.getElementById('weekStartDay').value = pluginSettings.weekStartDay;
-
-            document.getElementById("startTimeInterval").value = pluginSettings.startTimeInterval;
-            document.getElementById("endTimeInterval").value = pluginSettings.endTimeInterval;
-
-            document.getElementById("displayWeeks").value = pluginSettings.displayWeeks;
-            
+        // Merge server-provided pluginSettings if available
+        if (typeof loadPluginSettings !== 'undefined' && loadPluginSettings && typeof pluginSettings !== 'undefined') {
+            settings = { ...settings, ...pluginSettings };
+            // Normalize calendars from pluginSettings shape into arrays if present
             if (pluginSettings["calendarURLs[]"]) {
-                calendars = pluginSettings["calendarURLs[]"].map((url, i) => ({
-                    url: url || '',
-                    color: pluginSettings["calendarColors[]"][i]  || '#007BFF'
-                }));
+                settings["calendarURLs[]"] = pluginSettings["calendarURLs[]"];
+                settings["calendarColors[]"] = pluginSettings["calendarColors[]"] || [];
             }
         }
-        
-        // populate view mode
-        viewModeInput.value = viewMode
+
+        // Finally, apply any locally saved (unsaved) edits on top
+        const local = loadLocalSettings();
+        if (local) {
+            settings = { ...settings, ...local };
+        }
+
+        // populate view mode buttons and hidden field
+        const viewMode = settings.viewMode || 'dayGridMonth';
+        viewModeInput.value = viewMode;
         viewButtons.forEach(btn => {
             if (btn.getAttribute('data-value') === viewMode) {
                 btn.classList.add('active');
@@ -220,15 +275,78 @@
             }
         });
 
-        // populate language dropdown
-        document.getElementById('language').value = language;
-        document.getElementById('fontSize').value = fontSize;
+        // simple value setters
+        const setChecked = (id, val) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.checked = Boolean(val);
+            el.value = el.checked ? 'true' : 'false';
+        };
+        const setValue = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
 
-        // populate calendars
-        calendars.forEach(({ url, color }) => {
-            addCalendarInput(url, color);
+        setValue('language', settings.language);
+        setValue('fontSize', settings.fontSize);
+
+        setChecked('displayTitle', settings.displayTitle);
+        setChecked('displayWeekends', settings.displayWeekends);
+        setChecked('displayEventTime', settings.displayEventTime);
+        setChecked('displayNowIndicator', settings.displayNowIndicator);
+        setValue('nowIndicatorColor', settings.nowIndicatorColor || '#ff0000');
+        setChecked('displayPreviousDays', settings.displayPreviousDays);
+
+        setValue('weekStartDay', settings.weekStartDay);
+        setValue('startTimeInterval', settings.startTimeInterval);
+        setValue('endTimeInterval', settings.endTimeInterval);
+        setValue('displayWeeks', settings.displayWeeks);
+
+        // populate calendars (clear current list first)
+        const calendarList = document.getElementById('calendarList');
+        if (calendarList) calendarList.innerHTML = '';
+        const urls = settings["calendarURLs[]"] || [];
+        const colors = settings["calendarColors[]"] || [];
+        const count = Math.max(urls.length, colors.length, 0);
+        if (count === 0) {
+            addCalendarInput('', '#007BFF');
+        } else {
+            for (let i = 0; i < count; i++) {
+                addCalendarInput(urls[i] || '', colors[i] || '#007BFF');
+            }
+        }
+
+        updateViewDependentOptions(viewMode);
+
+        // Auto-save on changes
+        const wireAutoSave = () => {
+            const all = document.querySelectorAll('input, select, textarea');
+            all.forEach(el => {
+                el.addEventListener('change', saveLocalSettings);
+                if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'number' || el.type === 'color')) {
+                    el.addEventListener('input', saveLocalSettings);
+                }
+            });
+        };
+        wireAutoSave();
+
+        // Ensure dynamically added/removed calendar rows also trigger save
+        const addButton = document.getElementById('addCalendarBtn');
+        if (addButton) {
+            addButton.addEventListener('click', () => {
+                // allow existing onclick to add the inputs, then attach listeners and save
+                setTimeout(() => { wireAutoSave(); saveLocalSettings(); }, 0);
+            });
+        }
+
+        // Observe calendar list for removals and save
+        if (calendarList) {
+            const obs = new MutationObserver(() => {
+                saveLocalSettings();
+            });
+            obs.observe(calendarList, { childList: true, subtree: true });
+        }
+
+        // When settings are saved to the server, clear local cache so server values take precedence next load
+        window.addEventListener('plugin-settings-saved', () => {
+            try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
         });
-
-        updateViewDependentOptions(viewMode)
     });
 </script>
