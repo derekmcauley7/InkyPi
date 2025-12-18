@@ -2,16 +2,6 @@
 
 {% block content %}
 
-<style>
-  .fc-event,
-  .fc-event-dot {
-    color: {{ plugin_settings.eventTextColor or 'white' }} !important;
-    font-weight: bold !important;
-    font-size: 1.1em !important;
-    text-shadow: 0 0 2px black; /* optional for better readability */
-  }
-</style>
-
 <script src="{{static_dir}}/scripts/calendar.min.js" charset="UTF-8"></script>
 
 <div id="calendar" class="calendar" style="
