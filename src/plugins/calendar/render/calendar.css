@@ -46,12 +46,13 @@
 /* Event Styling */
 .fc .fc-daygrid-event {
   font-size: 0.9em !important;
-  padding: 2px 4px;
-  border-radius: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
   margin: 2px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block; /* ensure full block coloring */
 }
 
 /* Table Styling */

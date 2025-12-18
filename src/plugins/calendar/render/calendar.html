@@ -54,7 +54,13 @@
     displayEventTime: false,
       nowIndicator: false,
       height: '100%',
-      dayMaxEvents: 3
+      dayMaxEvents: 3,
+      eventDidMount: function(info) {
+      info.el.style.backgroundColor = info.event.backgroundColor;
+      info.el.style.borderColor = info.event.borderColor;
+      info.el.style.color = info.event.textColor;
+      info.el.style.display = 'block'; // key: make it a block so the whole event is colored
+    }
   });
 
     calendar.render();
