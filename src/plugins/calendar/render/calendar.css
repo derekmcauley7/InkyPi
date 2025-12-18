@@ -27,17 +27,37 @@
   padding: 4px 0 !important;
 }
 
-/* Day Frames */
-.fc .fc-daygrid-day-frame {
-  border: 1px solid var(--fc-border-color) !important;
-  padding: 2px;
-  min-height: 60px;  /* ensures events don’t overlap */
+.fc-dayGrid-view .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame{
+  border: 2px solid var(--fc-border-color) !important;
 }
 
-/* Highlight Today */
-.fc .fc-day-today .fc-daygrid-day-frame {
+.fc-dayGridMonth-view .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame{
   border: 2px solid var(--fc-border-color) !important;
-  background-color: #fff;
+}
+
+.fc-timeGrid-view thead .fc-day.fc-day-today .fc-scrollgrid-sync-inner{
+  border: 2px solid var(--fc-border-color) !important;
+}
+
+.fc-timeGridWeek-view thead .fc-col-header-cell.fc-day-today .fc-scrollgrid-sync-inner {
+  border: 2px solid var(--fc-border-color) !important;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  border-top-width: 3px !important;
+}
+
+.fc-scrollgrid {
+  border-color: transparent !important;
+}
+.fc-scrollgrid td:last-of-type {
+  border-right-color: transparent !important;
+}
+
+th {
+  border-top-color: transparent;
+  border-right-color: transparent !important;
+  border-left-color: transparent !important;
 }
 
 /* Event Styling */
@@ -52,8 +72,6 @@
   display: block; /* ensure full block coloring */
 }
 
-/* Table Styling */
 .fc table {
-  border-collapse: collapse;
   font-size: var(--fc-table-font-size) !important;
 }
