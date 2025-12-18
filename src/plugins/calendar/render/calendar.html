@@ -56,10 +56,11 @@
     const calendarEl = document.getElementById('calendar');
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
+      initialView: '{{ view }}',
       events: events,
       now: '{{ current_dt }}',
       timeZone: '{{ timezone }}',
+      expandRows: true,
       locale: "{{ plugin_settings.language or 'en' }}",
       firstDay: "{{ plugin_settings.weekStartDay or 0 }}",
       headerToolbar: {
