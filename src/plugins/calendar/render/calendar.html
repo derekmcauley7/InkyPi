@@ -1,38 +1,27 @@
 {% extends "plugin.html" %}
 
 {% block content %}
-
-<script src="{{static_dir}}/scripts/calendar.min.js" charset="UTF-8"></script>
-
+<!-- Calendar Container -->
 <div id="calendar" class="calendar" style="
---fc-page-bg-color: #fff;
---fc-border-color: #000;
---fc-today-bg-color: #fff;
---fc-event-bg-color: #000;
---fc-event-color: #fff;
---fc-small-font-size: {{ 0.9 * font_scale }}em;
---fc-title-font-size: {{ 2 * font_scale }}em;
---fc-table-font-size: {{ 1.1 * font_scale }}em;
+  --fc-page-bg-color: #fff;
+  --fc-border-color: #000;
+  --fc-today-bg-color: #fff;
+  --fc-small-font-size: {{ 0.9 * font_scale }}em;
+  --fc-title-font-size: {{ 2 * font_scale }}em;
+  --fc-table-font-size: {{ 1.1 * font_scale }}em;
 "></div>
 
+<!-- Calendar Script -->
+<script src="{{static_dir}}/scripts/calendar.min.js" charset="UTF-8"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const rawEvents = {{ events | tojson }};
 
-    // Pastel Google Calendar-like color palette
+    // Pastel Google Calendar-style colors
     const pastelColors = [
-      '#a6cee3', // light blue
-      '#1f78b4', // blue
-      '#b2df8a', // light green
-      '#33a02c', // green
-      '#fb9a99', // light red
-      '#e31a1c', // red
-      '#fdbf6f', // orange
-      '#ff7f00', // dark orange
-      '#cab2d6', // lavender
-      '#6a3d9a', // purple
-      '#ffff99', // yellow
-      '#b15928'  // brown
+      '#a6cee3', '#1f78b4', '#b2df8a', '#33a02c',
+      '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00',
+      '#cab2d6', '#6a3d9a', '#ffff99', '#b15928'
     ];
 
     // Assign a random color to each event
@@ -42,7 +31,7 @@
         ...event,
         backgroundColor: color,
         borderColor: color,
-        textColor: '#000'  // ensures text is readable on pastel backgrounds
+        textColor: '#000'  // ensures text is readable
       };
     });
 

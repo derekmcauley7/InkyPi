@@ -1,9 +1,9 @@
-/* Basic Reset */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+ /* Basic Reset */
+ * {
+   box-sizing: border-box;
+   margin: 0;
+   padding: 0;
+ }
 
 .calendar {
   width: 100%;
@@ -34,7 +34,7 @@
 .fc .fc-daygrid-day-frame {
   border: 1px solid var(--fc-border-color) !important;
   padding: 2px;
-  min-height: 60px;  /* ensures events don’t overlap */
+  min-height: 60px;
 }
 
 /* Highlight Today */
@@ -43,27 +43,25 @@
   background-color: #fff;
 }
 
-/* Events */
+/* Event Styling */
 .fc .fc-daygrid-event {
-  background-color: var(--fc-event-bg-color) !important;
-  color: var(--fc-event-color) !important;
   font-size: 0.9em !important;
   padding: 2px 4px;
-  border-radius: 2px;
-  margin: 1px 0;
+  border-radius: 4px;
+  margin: 2px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Remove extra lines */
+/* Table Styling */
 .fc table {
   border-collapse: collapse;
   font-size: var(--fc-table-font-size) !important;
 }
 
 .fc th, .fc td {
-  border: 1px solid #000; /* Strong black lines for e-ink */
+  border: 1px solid #000;
 }
 
 .fc th {
